@@ -1,5 +1,4 @@
 import asyncio
-from datetime import datetime
 
 import aiogram as io
 from aiogram.client.default import DefaultBotProperties

@@ -1,7 +1,11 @@
+from datetime import datetime
+
+import pytz
 from aiogram import Router, types, F
 from aiogram.filters import Command
 
 from service import client_service
+from settings import settings
 
 
 router = Router()
@@ -22,7 +26,12 @@ async def test_handler(message: types.Message) -> None:
 
     await client_service.login()
     # servers = await client_service.get_servers_list()
-    client = await client_service.get_client("sanya_dop")
+    # client = await client_service.get_client("sanya_dop")
+    clients = await client_service.get_clients()
+
+    timezone = pytz.timezone('Europe/Moscow')
+    dt_object = datetime.fromtimestamp(clients[0].expiry_time / 1000, tz=timezone)
+    print("Datetime with Timezone:", dt_object)
     await message.answer(f"Выполняется тестовое действие")
-    await message.answer(f"servers:\n\n{client}")
+    await message.answer(f"servers:\n\n{clients}")
 

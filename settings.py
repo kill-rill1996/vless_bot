@@ -6,6 +6,7 @@ class PanelVLESS(BaseSettings):
     xui_host: str
     xui_username: str
     xui_password: str
+    traffic_coefficient: float = 1073791844.13
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

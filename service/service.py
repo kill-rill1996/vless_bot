@@ -22,9 +22,15 @@ class ClientService:
         servers = await self.api.inbound.get_list()
         return servers
 
-    async def get_client(self, email):
+    async def get_clients(self) -> List[py3xui.Client]:
+        """Получение клиентов из inbound"""
+        server = await self.get_servers_list()
+        clients = server[0].client_stats
+        print(clients)
+        return clients
+
+    async def get_client(self, email) -> py3xui.Client:
         client = await self.api.client.get_by_email(email)
-        print(client)
         return client
 
 
