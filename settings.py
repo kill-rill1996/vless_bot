@@ -7,6 +7,8 @@ class PanelVLESS(BaseSettings):
     xui_username: str
     xui_password: str
     traffic_coefficient: float = 1073791844.13
+    domain: str
+    flow: str = "xtls-rprx-vision"
     inbound_id: int = 1  # TODO подумать куда лучше убрать
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

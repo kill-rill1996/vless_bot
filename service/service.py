@@ -62,11 +62,14 @@ class ClientService:
         # TODO проверить не существует ли такой уже, возможно она есть в апи
 
         # создание клиента
+        new_uuid = str(uuid.uuid4())
         await self.api.client.add(
             settings.panel_vless.inbound_id,
-            [py3xui.Client(email=user.username, enable=True,
-                           id=str(uuid.uuid4()),
-                           flow="xtls-rprx-vision", # TODO: нужно ли
+            [py3xui.Client(email=user.username,
+                           enable=True,
+                           tg_id=user.tg_id,
+                           id=new_uuid,
+                           flow=settings.panel_vless.flow,
                            expiry_time=int(user.expire_time))]
         )
 
@@ -78,7 +81,7 @@ class ClientService:
         client = await self.api.client.get_by_email(user.username)
         server = await self.get_servers_list()
         server = server[0]
-        connection_string = f"{server.protocol}://{client.sub_id}@{'somedomain123.store'}:{server.port}?type={server.stream_settings.network}&security={server.stream_settings.security}&pbk={server.stream_settings.reality_settings['settings']['publicKey']}&fp={server.stream_settings.reality_settings['settings']['fingerprint']}&sni={server.stream_settings.reality_settings['serverNames'][0]}&sid={server.stream_settings.reality_settings['shortIds'][0]}&spx={'%2F' if server.stream_settings.reality_settings['settings']['spiderX'] == '/' else ''}&flow={client.flow}#{client.email}"
+        connection_string = f"{server.protocol}://{new_uuid}@{settings.panel_vless.domain}:{server.port}?type={server.stream_settings.network}&security={server.stream_settings.security}&pbk={server.stream_settings.reality_settings['settings']['publicKey']}&fp={server.stream_settings.reality_settings['settings']['fingerprint']}&sni={server.stream_settings.reality_settings['serverNames'][0]}&sid={server.stream_settings.reality_settings['shortIds'][0]}&spx={'%2F' if server.stream_settings.reality_settings['settings']['spiderX'] == '/' else ''}&flow={settings.panel_vless.flow}#{client.email}"
         print("CONNECTION STRING\n\n", connection_string)
 
 
@@ -110,5 +113,5 @@ class ClientService:
 # vless://dd2bd42c-c0f8-4f27-aeb9-a2ecdf42e003@somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=%2F#user924250755
 # connection_string = f"{inbound.protocol}://{client.id}@{domen}:{port}?type={inbound.stream_settings.network}&security={inbound.stream_settings.security}&pbk={inbound.stream_settings.settings.publicKey}&fp={inbound.stream_settings.settings.fingerprint}&sni={inbound.stream_settings.reality_settings['serverNames'][0]}&sid={inbound.stream_settings.reality_settings['shortIds'][0]}&spx={inbound.stream_settings.settings.spiderX}&flow={client.flow}#{client.email}"
 
-# vless://                                    @somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=  /&flow=                #user924250755
-# vless://adeb4b33-0268-4cba-9e83-f47260018bc5@somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=%2F&flow=xtls-rprx-vision#user924250755
+# vless://a5c2edfb-5759-45b1-b31c-dc835d2a707c@somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=%2F&flow=xtls-rprx-vision#user420551454
+# vless://a5c2edfb-5759-45b1-b31c-dc835d2a707c@somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=%2F&flow=xtls-rprx-vision#user420551454
