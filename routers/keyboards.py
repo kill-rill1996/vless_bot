@@ -70,3 +70,10 @@ def back_keyboard(callback_data: str) -> InlineKeyboardBuilder:
     keyboard = InlineKeyboardBuilder()
     keyboard.row(InlineKeyboardButton(text="🔙 назад", callback_data=f"{callback_data}"))
     return keyboard
+
+
+def cancel_keyboard() -> InlineKeyboardBuilder:
+    """Клавиатура для отмены создания пользователя админом"""
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(InlineKeyboardButton(text="❌ Отмена", callback_data=f"cancel"))
+    return keyboard
