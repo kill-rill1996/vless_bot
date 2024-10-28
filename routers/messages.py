@@ -1,5 +1,5 @@
 from models import models
-from utils import convert_to_datetime_from_unix
+from routers.utils import convert_to_datetime_from_unix
 
 
 async def client_info_message(client: models.Client) -> str:

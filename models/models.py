@@ -10,9 +10,11 @@ class ClientCreate(BaseModel):
 
 
 class Client(ClientCreate):
+    """Для вывода клиента для пользователей"""
     traffic: float
 
 
 class ClientWithKey(Client):
+    """Для вывода клиента с ключом при создании"""
     key: str
 
