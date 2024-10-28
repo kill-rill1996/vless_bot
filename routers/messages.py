@@ -1,8 +1,8 @@
 from models import models
-from application import App
+from utils import convert_to_datetime_from_unix
 
 
-async def client_info_message(client: models.Client, app: App) -> str:
+async def client_info_message(client: models.Client) -> str:
     """Информация о пользователе 🗓️"""
 
     message = f"👤Имя: {client.username}\n"
@@ -11,7 +11,7 @@ async def client_info_message(client: models.Client, app: App) -> str:
     message += f"🗓Дата окончания: "
 
     if client.expire_time != 0:
-        expire_date = await app.service.convert_to_datetime_from_unix(client.expire_time)
+        expire_date = await convert_to_datetime_from_unix(client.expire_time)
         message += f"{expire_date}"
 
     else:

@@ -1,9 +1,7 @@
-import datetime
 import uuid
 from typing import List
 
 import py3xui
-import pytz
 from py3xui import AsyncApi
 
 from settings import settings
@@ -31,7 +29,6 @@ class ClientService:
     async def get_clients(self) -> List[models.Client]:
         """Получение клиентов из inbound"""
         server = await self.get_inbound_list()
-        print("inbound.stream_settings\n\n", server[0].stream_settings)
         clients = server[0].client_stats
 
         result = []
@@ -111,9 +108,6 @@ class ClientService:
         sum_traffic = (download + upload) / settings.panel_vless.traffic_coefficient
         return round(sum_traffic, 2)
 
-    @staticmethod
-    async def convert_to_datetime_from_unix(unix_time: float) -> datetime:
-        """Перевод unix time в формат ДД.ММ.ГГГГ"""
-        timezone = pytz.timezone('Europe/Moscow')
-        return datetime.datetime.fromtimestamp(unix_time / 1000, tz=timezone).date().strftime("%d.%m.%Y")
+
+
 
