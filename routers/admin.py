@@ -60,7 +60,7 @@ async def get_user_info_handler(callback: types.CallbackQuery) -> None:
     username = callback.data.split(salt)[1]
     client = await app.service.get_client(username)
 
-    msg = await ms.client_info_message(client, app)
+    msg = await ms.client_info_message(client)
     await callback.message.edit_text(msg, reply_markup=kb.user_keyboard(client).as_markup())
 
 
