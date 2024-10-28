@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     bot_token: str = Field(validation_alias='TG_TOKEN')
     panel_vless: PanelVLESS = PanelVLESS()
     salt: str = "#&*!@"
+    id_salt: str = "_user_."
+    username_salt: str = "__id__"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

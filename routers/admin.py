@@ -95,8 +95,9 @@ async def save_new_client_by_admin(message: types.Message, state: FSMContext) ->
     """Сохранение нового клиента, добавленного админом. Окончание AddUserByAdminFSM"""
     contact = message.contact
     tg_id = str(contact.user_id)
-    username = "user" + tg_id
+    username = app.settings.id_salt + tg_id
 
+    # TODO проверять наличие пользователя в service
     # если пользователь уже есть
     if await app.service.is_user_exists(username):
         data = await state.get_data()
