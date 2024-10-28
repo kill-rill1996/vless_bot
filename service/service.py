@@ -23,14 +23,14 @@ class ClientService:
         """Логин по username и password для vless panel"""
         await self.api.login()
 
-    async def get_servers_list(self) -> List[py3xui.Inbound]:
+    async def get_inbound_list(self) -> List[py3xui.Inbound]:
         """Получение списка серверов"""
         servers = await self.api.inbound.get_list()
         return servers
 
     async def get_clients(self) -> List[models.Client]:
         """Получение клиентов из inbound"""
-        server = await self.get_servers_list()
+        server = await self.get_inbound_list()
         print("inbound.stream_settings\n\n", server[0].stream_settings)
         clients = server[0].client_stats
 
@@ -57,10 +57,8 @@ class ClientService:
             expire_time=client.expiry_time
         )
 
-    async def create_new_client(self, user: models.ClientCreate) -> models.Client:
-        """Создание нового клиента"""
-        # TODO проверить не существует ли такой уже, возможно она есть в апи
-
+    async def create_new_client(self, user: models.ClientCreate) -> (models.Client, str):
+        """Создание нового клиента и строки для подключения"""
         # создание клиента
         new_uuid = str(uuid.uuid4())
         await self.api.client.add(
@@ -70,22 +68,34 @@ class ClientService:
                            tg_id=user.tg_id,
                            id=new_uuid,
                            flow=settings.panel_vless.flow,
-                           expiry_time=int(user.expire_time))]
+                           expiry_time=user.expire_time)]
         )
 
         # получение нового клиента по email
         new_client = await self.get_client(user.username)
 
+        # получение строки для подключения
+        key = await self._get_key(new_uuid)
+        new_client_with_key = models.ClientWithKey(key=key, **new_client.dict())
 
-        # TODO connection string
-        client = await self.api.client.get_by_email(user.username)
-        server = await self.get_servers_list()
+        return new_client_with_key
+
+    async def _get_key(self, client_uuid: str) -> str:
+        """Создание строки подключения"""
+        server = await self.get_inbound_list()
         server = server[0]
-        connection_string = f"{server.protocol}://{new_uuid}@{settings.panel_vless.domain}:{server.port}?type={server.stream_settings.network}&security={server.stream_settings.security}&pbk={server.stream_settings.reality_settings['settings']['publicKey']}&fp={server.stream_settings.reality_settings['settings']['fingerprint']}&sni={server.stream_settings.reality_settings['serverNames'][0]}&sid={server.stream_settings.reality_settings['shortIds'][0]}&spx={'%2F' if server.stream_settings.reality_settings['settings']['spiderX'] == '/' else ''}&flow={settings.panel_vless.flow}#{client.email}"
-        print("CONNECTION STRING\n\n", connection_string)
 
+        key = f"{server.protocol}://{client_uuid}@{settings.panel_vless.domain}:{server.port}" \
+              f"?type={server.stream_settings.network}" \
+              f"&security={server.stream_settings.security}" \
+              f"&pbk={server.stream_settings.reality_settings['settings']['publicKey']}" \
+              f"&fp={server.stream_settings.reality_settings['settings']['fingerprint']}" \
+              f"&sni={server.stream_settings.reality_settings['serverNames'][0]}" \
+              f"&sid={server.stream_settings.reality_settings['shortIds'][0]}" \
+              f"&spx={'%2F' if server.stream_settings.reality_settings['settings']['spiderX'] == '/' else ''}" \
+              f"&flow={settings.panel_vless.flow}"
 
-        return new_client
+        return key
 
     async def is_user_exists(self, username: str) -> bool:
         """Проверка существует ли пользователь"""
@@ -107,11 +117,3 @@ class ClientService:
         timezone = pytz.timezone('Europe/Moscow')
         return datetime.datetime.fromtimestamp(unix_time / 1000, tz=timezone).date().strftime("%d.%m.%Y")
 
-
-# vless://bf497a8f-a612-44ac-afab-b3f4111c69eb@somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=%2F&flow=xtls-rprx-vision#user100
-# vless://a30984dc-1a7e-4845-9bbd-0f1c7ad6624e@somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=%2F#shuruho
-# vless://dd2bd42c-c0f8-4f27-aeb9-a2ecdf42e003@somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=%2F#user924250755
-# connection_string = f"{inbound.protocol}://{client.id}@{domen}:{port}?type={inbound.stream_settings.network}&security={inbound.stream_settings.security}&pbk={inbound.stream_settings.settings.publicKey}&fp={inbound.stream_settings.settings.fingerprint}&sni={inbound.stream_settings.reality_settings['serverNames'][0]}&sid={inbound.stream_settings.reality_settings['shortIds'][0]}&spx={inbound.stream_settings.settings.spiderX}&flow={client.flow}#{client.email}"
-
-# vless://a5c2edfb-5759-45b1-b31c-dc835d2a707c@somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=%2F&flow=xtls-rprx-vision#user420551454
-# vless://a5c2edfb-5759-45b1-b31c-dc835d2a707c@somedomain123.store:443?type=tcp&security=reality&pbk=_V7Joja7EM0GukBFX7M_HBqtlJAz0hQuYIhoGqWVBwI&fp=chrome&sni=www.google.com&sid=6977dfdb8b9c54&spx=%2F&flow=xtls-rprx-vision#user420551454

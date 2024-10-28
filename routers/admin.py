@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 from aiogram import Router, types, F
@@ -110,14 +110,15 @@ async def save_new_client_by_admin(message: types.Message, state: FSMContext) ->
 
     # новый пользователь
     else:
+        # expire_time = int((datetime.now(tz=pytz.timezone("Europe/Moscow")) + timedelta(days=30)).timestamp() * 1000)
         client_model = models.ClientCreate(
             username=username,
             tg_id=tg_id,
             is_active=True,
-            expire_time=0   # TODO сейчас стоит 0, то есть неограниченный период для пользователей, добавленных админом
+            expire_time=0
         )
 
-        new_client = await app.service.create_new_client(client_model)
+        new_client_with_key: models.ClientWithKey = await app.service.create_new_client(client_model)
 
         data = await state.get_data()
         try:
@@ -126,9 +127,10 @@ async def save_new_client_by_admin(message: types.Message, state: FSMContext) ->
             pass
         await state.clear()
 
-        # TODO хз как получить ссылку для клиента
-        await message.answer(f"Новый клиент <b>\"{new_client.username}\"</b> с неограниченным сроком действия "
-                             f"подписки успешно добавлен ✅")
+        await message.answer(f"Новый клиент <b>\"{new_client_with_key.username}\"</b> с неограниченным сроком действия "
+                             f"подписки успешно добавлен ✅\n\n<b>Следующим сообщением будет отправлена ссылка на подключение</b>")
+        await message.answer(new_client_with_key.key)
+
         await main_menu(message)
 
 

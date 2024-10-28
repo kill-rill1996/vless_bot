@@ -6,9 +6,13 @@ class ClientCreate(BaseModel):
     username: str
     tg_id: str | None
     is_active: bool
-    expire_time: float
+    expire_time: int
 
 
 class Client(ClientCreate):
     traffic: float
+
+
+class ClientWithKey(Client):
+    key: str
 
