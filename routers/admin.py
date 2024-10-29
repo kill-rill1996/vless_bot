@@ -1,7 +1,3 @@
-import time
-from datetime import datetime, timedelta
-
-import pytz
 from aiogram import Router, types, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
@@ -9,12 +5,14 @@ from aiogram.fsm.context import FSMContext
 
 import routers.keyboards as kb
 from fsm_states import AddUserByAdminFSM
+from middlewares import CheckIsAdminMiddleware, CheckPrivateMessageMiddleware
 from routers import app, salt, messages as ms
 from models import models
-
+from settings import settings
 
 router = Router()
-# router.message.middleware.register(CheckPrivateMessageMiddleware())
+router.message.middleware.register(CheckPrivateMessageMiddleware())
+router.message.middleware.register(CheckIsAdminMiddleware(settings.admins))
 
 
 @router.message(Command("start"))
@@ -23,8 +21,6 @@ async def start_message(message: types.Message) -> None:
     msg = "Hello message"
     if type(message) == types.Message:
         await message.answer(msg)   # TODO add stickers
-    else:
-        await message.message.answer(msg) # TODO add stickers
 
     await app.service.login()
 
@@ -32,6 +28,7 @@ async def start_message(message: types.Message) -> None:
 
 
 @router.callback_query(lambda callback: callback.data == "back-to-menu")
+@router.message(Command("menu"))
 async def main_menu(message: types.Message | types.CallbackQuery):
     """Главное меню"""
     msg = "Главное меню"
@@ -97,9 +94,17 @@ async def save_new_client_by_admin(message: types.Message, state: FSMContext) ->
     tg_id = str(contact.user_id)
     username = app.settings.id_salt + tg_id
 
-    # TODO проверять наличие пользователя в service
+    client_model = models.ClientCreate(
+        username=username,
+        tg_id=tg_id,
+        is_active=True,
+        expire_time=0
+    )
+
+    new_client_with_key, error = await app.service.create_new_client(client_model)
+
     # если пользователь уже есть
-    if await app.service.is_user_exists(username):
+    if error:
         data = await state.get_data()
         try:
             await data["prev_mess"].delete()
@@ -111,16 +116,6 @@ async def save_new_client_by_admin(message: types.Message, state: FSMContext) ->
 
     # новый пользователь
     else:
-        # expire_time = int((datetime.now(tz=pytz.timezone("Europe/Moscow")) + timedelta(days=30)).timestamp() * 1000)
-        client_model = models.ClientCreate(
-            username=username,
-            tg_id=tg_id,
-            is_active=True,
-            expire_time=0
-        )
-
-        new_client_with_key: models.ClientWithKey = await app.service.create_new_client(client_model)
-
         data = await state.get_data()
         try:
             await data["prev_mess"].delete()
@@ -133,6 +128,14 @@ async def save_new_client_by_admin(message: types.Message, state: FSMContext) ->
         await message.answer(new_client_with_key.key)
 
         await main_menu(message)
+
+
+# HELP MESSAGE
+@router.message(Command("help"))
+async def help_handler(message: types.Message) -> None:
+    """Help message"""
+    msg = ms.get_help_message()
+    await message.answer(msg)
 
 
 # CANCEL BUTTON

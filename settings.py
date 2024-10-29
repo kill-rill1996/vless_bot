@@ -17,6 +17,7 @@ class PanelVLESS(BaseSettings):
 class Settings(BaseSettings):
     bot_token: str = Field(validation_alias='TG_TOKEN')
     panel_vless: PanelVLESS = PanelVLESS()
+    admins: list
     salt: str = "#&*!@"
     id_salt: str = "_user_."
     username_salt: str = "__id__"

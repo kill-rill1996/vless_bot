@@ -18,3 +18,8 @@ class ClientWithKey(Client):
     """Для вывода клиента с ключом при создании"""
     key: str
 
+
+class Error(BaseModel):
+    """Ошибки от Services"""
+    message: str
+

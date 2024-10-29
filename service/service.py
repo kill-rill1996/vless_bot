@@ -54,8 +54,13 @@ class ClientService:
             expire_time=client.expiry_time
         )
 
-    async def create_new_client(self, user: models.ClientCreate) -> (models.Client, str):
-        """Создание нового клиента и строки для подключения"""
+    async def create_new_client(self, user: models.ClientCreate) -> (models.ClientWithKey | None, dict | None):
+        """Создание нового клиента и строки для подключения
+        (в случае дублирования пользователя возвращает None и Error с ошибкой)"""
+        # проверка существования пользователя
+        if await self.is_user_exists(user.username):
+            return None, models.Error(message="user already exists")
+
         # создание клиента
         new_uuid = str(uuid.uuid4())
         await self.api.client.add(
@@ -65,6 +70,8 @@ class ClientService:
                            tg_id=user.tg_id,
                            id=new_uuid,
                            flow=settings.panel_vless.flow,
+                           # TODO не потерять строку с правильным формирование времени
+                           # expire_time = int((datetime.now(tz=pytz.timezone("Europe/Moscow")) + timedelta(days=30)).timestamp() * 1000)
                            expiry_time=user.expire_time)]
         )
 
@@ -75,7 +82,7 @@ class ClientService:
         key = await self._get_key(new_uuid)
         new_client_with_key = models.ClientWithKey(key=key, **new_client.dict())
 
-        return new_client_with_key
+        return new_client_with_key, None
 
     async def _get_key(self, client_uuid: str) -> str:
         """Создание строки подключения"""

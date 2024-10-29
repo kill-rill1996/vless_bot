@@ -56,7 +56,7 @@ def user_keyboard(user: models.Client) -> InlineKeyboardBuilder:
     lock_callback = ("Заблокировать", "lock") if user.is_active else ("Разблокировать", "unlock")
 
     keyboard.row(
-        InlineKeyboardButton(text="Пополнения 👤", callback_data=f"user-operations{salt}{user.username}"),
+        InlineKeyboardButton(text="Пополнения", callback_data=f"user-operations{salt}{user.username}"),
         InlineKeyboardButton(text=lock_callback[0], callback_data=f"user-lock{salt}{lock_callback[1]}{salt}{user.username}"),
         InlineKeyboardButton(text="Редактировать", callback_data=f"user-edit{salt}{user.username}"),
         InlineKeyboardButton(text="Удалить", callback_data=f"user-delete{salt}{user.username}")
