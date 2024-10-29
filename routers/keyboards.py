@@ -27,8 +27,10 @@ def main_keyboard() -> InlineKeyboardBuilder:
         InlineKeyboardButton(text="👤 Пользователи", callback_data=f"main{salt}users"),
         InlineKeyboardButton(text="Должники", callback_data=f"main{salt}debtors"),
         InlineKeyboardButton(text="➕ Новый польз.", callback_data=f"main{salt}new-user"),
-        InlineKeyboardButton(text="Операции", callback_data=f"main{salt}operations")
+        InlineKeyboardButton(text="Операции", callback_data=f"main{salt}operations"),
+        InlineKeyboardButton(text="🗑️ Удалить польз.", callback_data=f"main{salt}delete-user")
                  )
+
     keyboard.adjust(2)
     return keyboard
 
@@ -63,6 +65,30 @@ def user_keyboard(user: models.Client) -> InlineKeyboardBuilder:
     )
     keyboard.adjust(2)
     return keyboard
+
+
+@back_button(f"main{salt}delete-user")
+def delete_keyboard(data: str) -> InlineKeyboardBuilder:
+    """Кнопка удалить под сообщением"""
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(
+        InlineKeyboardButton(text="Удалить", callback_data=f"delete{salt}{data}"),
+    )
+
+    return keyboard
+
+
+def confirm_keyboard(data: str) -> InlineKeyboardBuilder:
+    """Клавиатура подтверждения"""
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(
+        InlineKeyboardButton(text="Да", callback_data=f"yes{salt}{data}"),
+        InlineKeyboardButton(text="Нет", callback_data=f"no{salt}{data}"),
+    )
+
+    keyboard.adjust(2)
+    return keyboard
+
 
 
 def back_keyboard(callback_data: str) -> InlineKeyboardBuilder:

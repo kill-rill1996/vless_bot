@@ -31,6 +31,12 @@ async def client_info_message(client: models.Client) -> str:
     return message
 
 
+async def confirm_delete_client_message(username: str) -> str:
+    """Сообщение об удалении клиента"""
+    message = f"Удалить пользователя \"{username}\"?"
+    return message
+
+
 def get_help_message() -> str:
     """Help message"""
     message = "<b>Возможности бота:</b>\n" \

@@ -4,8 +4,8 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 
 import routers.keyboards as kb
-from fsm_states import AddUserByAdminFSM
-from middlewares import CheckIsAdminMiddleware, CheckPrivateMessageMiddleware
+from routers.fsm_states import AddUserByAdminFSM, DeleteUserFSM
+from routers.middlewares import CheckIsAdminMiddleware, CheckPrivateMessageMiddleware
 from routers import app, salt, messages as ms
 from models import models
 from settings import settings
@@ -51,7 +51,7 @@ async def all_users_handler(callback: types.CallbackQuery) -> None:
     await callback.message.edit_text("Список пользователей:", reply_markup=kb.all_users_keyboard(all_users).as_markup())
 
 
-@router.callback_query(lambda callback: callback.data != "cancel" and callback.data.split(salt)[0] == "user")
+@router.callback_query(lambda callback: callback.data != "cancel" and callback.data.split(salt)[0] == "user" and not FSMContext)
 async def get_user_info_handler(callback: types.CallbackQuery) -> None:
     """Вывод информации по пользователю"""
     username = callback.data.split(salt)[1]
@@ -128,6 +128,59 @@ async def save_new_client_by_admin(message: types.Message, state: FSMContext) ->
         await message.answer(new_client_with_key.key)
 
         await main_menu(message)
+
+
+# DELETE USER
+@router.callback_query(lambda callback: callback.data != "cancel" and callback.data.split(salt)[1] == "delete-user")
+async def delete_user(callback: types.CallbackQuery, state: FSMContext) -> None:
+    """Вывод пользователей"""
+    all_clients = await app.service.get_clients()
+    await state.set_state(DeleteUserFSM.start)
+
+    await callback.message.edit_text("Выберите пользователя для удаления:",
+                                     reply_markup=kb.all_users_keyboard(all_clients).as_markup())
+
+
+@router.callback_query(DeleteUserFSM.start)
+async def delete_user(callback: types.CallbackQuery, state: FSMContext) -> None:
+    """Вывод пользователей"""
+    client_username = callback.data.split(salt)[1]
+    client = await app.service.get_client(client_username)
+
+    await state.set_state(DeleteUserFSM.client)
+
+    message = await ms.client_info_message(client)
+
+    await callback.message.edit_text(message,
+                                     reply_markup=kb.delete_keyboard(client_username).as_markup())
+
+
+@router.callback_query(DeleteUserFSM.client)
+async def confirmation_delete_user(callback: types.CallbackQuery, state: FSMContext) -> None:
+    """Подтверждение удаления пользователя"""
+    await state.set_state(DeleteUserFSM.confirm)
+
+    client_username = callback.data.split(salt)[1]
+
+    message = await ms.confirm_delete_client_message(client_username)
+
+    await callback.message.edit_text(message,
+                                     reply_markup=kb.confirm_keyboard(client_username).as_markup())
+
+
+@router.callback_query(DeleteUserFSM.confirm)
+async def delete_user_handler(callback: types.CallbackQuery, state: FSMContext) -> None:
+    """Удаление пользователя"""
+    if callback.data.split(salt)[0] == "no":
+        pass
+        return
+
+    username = callback.data.split(salt)[1]
+    await app.service.delete_client(username)
+
+    await callback.message.edit_text(f"Клиент {username} удален")
+    await callback.message.answer("Главное меню", reply_markup=kb.main_keyboard().as_markup())
+
 
 
 # HELP MESSAGE

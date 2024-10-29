@@ -43,9 +43,9 @@ class ClientService:
 
         return result
 
-    async def get_client(self, email) -> models.Client:
+    async def get_client(self, username) -> models.Client:
         """Получение клиента по username (для vless это email)"""
-        client = await self.api.client.get_by_email(email)
+        client = await self.api.client.get_by_email(username)
         return models.Client(
             username=client.email,
             tg_id=client.tg_id,
@@ -83,6 +83,13 @@ class ClientService:
         new_client_with_key = models.ClientWithKey(key=key, **new_client.dict())
 
         return new_client_with_key, None
+
+    async def delete_client(self, username: str) -> None:
+        """Удаление клиента из сервиса"""
+        client = await self.api.client.get_by_email(username)
+        print(client.id)
+
+        await self.api.client.delete(settings.panel_vless.inbound_id, "71f35540-8351-44ae-8677-75fc8115a5a4")
 
     async def _get_key(self, client_uuid: str) -> str:
         """Создание строки подключения"""
