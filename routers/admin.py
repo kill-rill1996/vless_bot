@@ -130,6 +130,21 @@ async def save_new_client_by_admin(message: types.Message, state: FSMContext) ->
         await main_menu(message)
 
 
+# LOCK CLIENT
+@router.callback_query(lambda callback: callback.data != "cancel" and
+                      (callback.data.split(salt)[0] == "user-lock" or callback.data.split(salt)[0] == "user-unlock"))
+async def lock_unlock_client_handler(callback: types.CallbackQuery):
+    callback_data = callback.data.split(salt)
+    action = callback_data[0].split("-")[1] # "lock" / "unlock"
+    username = callback_data[1]
+
+    # выполнение блокировки или разблокировки в зависимости от action ("lock" / "unlock")
+    updated_client = await app.service.lock_unlock_client(username, action)
+
+    msg = await ms.client_info_message(updated_client)
+    await callback.message.edit_text(msg, reply_markup=kb.user_keyboard(updated_client).as_markup())
+
+
 # HELP MESSAGE
 @router.message(Command("help"))
 async def help_handler(message: types.Message) -> None:

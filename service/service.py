@@ -1,4 +1,5 @@
 import uuid
+import requests
 from typing import List
 
 import py3xui
@@ -108,6 +109,22 @@ class ClientService:
         if client:
             return True
         return False
+
+    async def lock_unlock_client(self, username: str, action: str) -> models.Client:
+        """Блокировка и разблокировка клиента"""
+        print(username)
+        client: py3xui.Client = await self.api.client.get_by_email(username)
+        print(client)
+        print(action)
+
+        if action == "lock":
+            client.email = "someemailgmail.com"
+        else:
+            client.enable = True
+        await self.api.client.update("b6f50b1b-138e-4ebc-8fd8-e47a1d2dabff", client)
+
+        updated_client: models.Client = await self.get_client(username)
+        return updated_client
 
     @staticmethod
     async def get_full_traffic(download: int, upload: int) -> float:
