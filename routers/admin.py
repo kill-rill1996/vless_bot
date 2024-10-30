@@ -51,7 +51,7 @@ async def all_users_handler(callback: types.CallbackQuery) -> None:
     await callback.message.edit_text("Список пользователей:", reply_markup=kb.all_users_keyboard(all_users).as_markup())
 
 
-@router.callback_query(lambda callback: callback.data != "cancel" and callback.data.split(salt)[0] == "user" and not FSMContext)
+@router.callback_query(lambda callback: callback.data != "cancel" and callback.data.split(salt)[0] == "user") # and not FSMContext
 async def get_user_info_handler(callback: types.CallbackQuery) -> None:
     """Вывод информации по пользователю"""
     username = callback.data.split(salt)[1]
@@ -194,7 +194,7 @@ async def lock_unlock_client_handler(callback: types.CallbackQuery):
     updated_client = await app.service.lock_unlock_client(username, action)
 
     msg = await ms.client_info_message(updated_client)
-    await callback.message.edit_text(msg, reply_markup=kb.user_keyboard(updated_client).as_markup())
+    await callback.message.answer(msg, reply_markup=kb.user_keyboard(updated_client).as_markup())
 
 
 # HELP MESSAGE

@@ -119,16 +119,15 @@ class ClientService:
 
     async def lock_unlock_client(self, username: str, action: str) -> models.Client:
         """Блокировка и разблокировка клиента"""
-        print(username)
         client: py3xui.Client = await self.api.client.get_by_email(username)
-        print(client)
-        print(action)
+        client.id = "65a1adaf-04ea-40e2-8521-3cd6f3bfd157"
+        client.flow = settings.panel_vless.flow
 
         if action == "lock":
-            client.email = "someemailgmail.com"
+            client.enable = False
         else:
             client.enable = True
-        await self.api.client.update("b6f50b1b-138e-4ebc-8fd8-e47a1d2dabff", client)
+        await self.api.client.update("65a1adaf-04ea-40e2-8521-3cd6f3bfd157", client)
 
         updated_client: models.Client = await self.get_client(username)
         return updated_client
