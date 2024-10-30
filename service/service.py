@@ -88,9 +88,9 @@ class ClientService:
     async def delete_client(self, username: str) -> None:
         """Удаление клиента из сервиса"""
         client = await self.api.client.get_by_email(username)
-        print(client.id)
 
-        await self.api.client.delete(settings.panel_vless.inbound_id, "71f35540-8351-44ae-8677-75fc8115a5a4")
+        # TODO use uuid from db
+        await self.api.client.delete(settings.panel_vless.inbound_id, "edadf43f-c0b4-4ea8-ba88-5d83373d4e11")
 
     async def _get_key(self, client_uuid: str) -> str:
         """Создание строки подключения"""

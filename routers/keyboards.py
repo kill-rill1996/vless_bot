@@ -85,7 +85,7 @@ def confirm_keyboard(data: str) -> InlineKeyboardBuilder:
         InlineKeyboardButton(text="Да", callback_data=f"yes{salt}{data}"),
         InlineKeyboardButton(text="Нет", callback_data=f"no{salt}{data}"),
     )
-
+    keyboard.row(InlineKeyboardButton(text="Отмена", callback_data=f"cancel"))
     keyboard.adjust(2)
     return keyboard
 

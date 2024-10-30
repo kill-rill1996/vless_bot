@@ -29,10 +29,14 @@ async def start_message(message: types.Message) -> None:
 
 @router.callback_query(lambda callback: callback.data == "back-to-menu")
 @router.message(Command("menu"))
-async def main_menu(message: types.Message | types.CallbackQuery):
+async def main_menu(message: types.Message | types.CallbackQuery, state: FSMContext = None):
     """Главное меню"""
+    if state != None:
+        await state.clear()
+
     msg = "Главное меню"
     if type(message) == types.Message:
+        # await state.clear()  # для сброса state в случае перехода по кнопке /menu из любой точки бота
         await message.answer(msg, reply_markup=kb.main_keyboard().as_markup())
     else:
         # при отмене
@@ -40,6 +44,7 @@ async def main_menu(message: types.Message | types.CallbackQuery):
             await message.message.answer(msg, reply_markup=kb.main_keyboard().as_markup())
         # при нажатии кнопки назад
         else:
+            # await state.clear()  # для сброса state в случае перехода по кнопке назад
             await message.message.edit_text(msg, reply_markup=kb.main_keyboard().as_markup())
 
 
@@ -51,7 +56,8 @@ async def all_users_handler(callback: types.CallbackQuery) -> None:
     await callback.message.edit_text("Список пользователей:", reply_markup=kb.all_users_keyboard(all_users).as_markup())
 
 
-@router.callback_query(lambda callback: callback.data != "cancel" and callback.data.split(salt)[0] == "user") # and not FSMContext
+@router.callback_query(lambda callback: callback.data != "cancel" and callback.data.split(salt)[0] == "user",
+                       StateFilter(None))
 async def get_user_info_handler(callback: types.CallbackQuery) -> None:
     """Вывод информации по пользователю"""
     username = callback.data.split(salt)[1]
@@ -168,17 +174,22 @@ async def confirmation_delete_user(callback: types.CallbackQuery, state: FSMCont
                                      reply_markup=kb.confirm_keyboard(client_username).as_markup())
 
 
-@router.callback_query(DeleteUserFSM.confirm)
+@router.callback_query(DeleteUserFSM.confirm, lambda callback: callback.data.split(salt)[0] in ["yes", "no"])
 async def delete_user_handler(callback: types.CallbackQuery, state: FSMContext) -> None:
     """Удаление пользователя"""
+    await state.clear()
+
+    # отмена удаления
     if callback.data.split(salt)[0] == "no":
-        pass
+        await callback.message.edit_text(f"Действие отменено ❌")
+        await callback.message.answer("Главное меню", reply_markup=kb.main_keyboard().as_markup())
         return
 
+    # удаляем
     username = callback.data.split(salt)[1]
     await app.service.delete_client(username)
 
-    await callback.message.edit_text(f"Клиент {username} удален")
+    await callback.message.edit_text(f"Клиент {username} удален ✅")
     await callback.message.answer("Главное меню", reply_markup=kb.main_keyboard().as_markup())
 
 
