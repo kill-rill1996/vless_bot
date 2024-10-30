@@ -1,4 +1,7 @@
+import datetime
 import uuid
+
+import pytz
 import requests
 from typing import List
 
@@ -47,6 +50,7 @@ class ClientService:
     async def get_client(self, username) -> models.Client:
         """Получение клиента по username (для vless это email)"""
         client = await self.api.client.get_by_email(username)
+
         return models.Client(
             username=client.email,
             tg_id=client.tg_id,
@@ -120,14 +124,20 @@ class ClientService:
     async def lock_unlock_client(self, username: str, action: str) -> models.Client:
         """Блокировка и разблокировка клиента"""
         client: py3xui.Client = await self.api.client.get_by_email(username)
-        client.id = "65a1adaf-04ea-40e2-8521-3cd6f3bfd157"
+        # TODO: брать не хардкодом client.id (uuid) и client.tg_id а из базы данных
+        client.id = "76cc92dc-4bcc-4f13-a7bf-df7018b2e9eb"
+        client.tg_id = int(username.replace(settings.id_salt, ""))
         client.flow = settings.panel_vless.flow
 
         if action == "lock":
             client.enable = False
+            client.expiry_time = int((datetime.datetime.now(tz=pytz.timezone("Europe/Moscow")) - datetime.timedelta(days=1)).timestamp() * 1000)
         else:
             client.enable = True
-        await self.api.client.update("65a1adaf-04ea-40e2-8521-3cd6f3bfd157", client)
+            client.expiry_time = 0
+
+        # TODO: брать не хардкодом client.id (uuid)
+        await self.api.client.update("76cc92dc-4bcc-4f13-a7bf-df7018b2e9eb", client)
 
         updated_client: models.Client = await self.get_client(username)
         return updated_client

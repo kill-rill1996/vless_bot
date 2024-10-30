@@ -182,7 +182,7 @@ async def delete_user_handler(callback: types.CallbackQuery, state: FSMContext) 
     await callback.message.answer("Главное меню", reply_markup=kb.main_keyboard().as_markup())
 
 
-# LOCK CLIENT
+# LOCK AND UNLOCK CLIENT
 @router.callback_query(lambda callback: callback.data != "cancel" and
                       (callback.data.split(salt)[0] == "user-lock" or callback.data.split(salt)[0] == "user-unlock"))
 async def lock_unlock_client_handler(callback: types.CallbackQuery):
